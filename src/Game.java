@@ -1,4 +1,3 @@
-import java.util.*;
 import java.awt.*;
 
 public class Game extends Panel
@@ -58,29 +57,18 @@ public class Game extends Panel
 	}
 
 	/**
-	What happens when the tetramino goes down one square. Return whether I need to spawn another block
+	What happens when the tetramino goes down one square.
+     @return whether I need to spawn another block
 	*/
 	private boolean softDrop ()
 	{
 		tetraY += 1;
-		//TODO: Check for collisions better.
-
-		if (tetraY + 4 > height)
-		{
-			return true;
-		}
-
-		for (int i = 0; i < 4; i++)
-		{
-			for (int j = 0; j < 4; j++)
-			{
-				if (field [i + tetraX] [j + tetraY] != 0 && curBlock [i] [j] != 0)
-				{
-					return true;
-				}
-			}
-		}
-		return false;
+		if (collision())
+        {
+            tetraY -= 1;
+            return true;
+        }
+        return false;
 	}
 
 	public void update ()
@@ -92,10 +80,24 @@ public class Game extends Panel
 	}
 
 	/**
-	Add the current block the the field, and spawn a random block at the top
+	Add the current block the the field, and spawn a random block at the top.
+     Check for loss: is there a block in the top 4 rows.
 	*/
 	public void spawnNewBlock ()
 	{
+        //check for loss
+        for (int i = 0; i < this.width; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                if (field [i] [j] != 0)
+                {
+                    System.out.println("You have lost");
+                    System.exit (100);
+                }
+            }
+        }
+
 		//copy current block to field.
 		for (int i = 0; i < curBlock.length; i++)
 		{
@@ -114,6 +116,32 @@ public class Game extends Panel
 		tetraY = 0;
 	}
 
+    /**
+     * Check whether current block is in a valid position, i.e. not off the screen or 'inside' another block.
+     * @return whether there is a collision. (return !(block is in valid position)
+     */
+    private boolean collision ()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                if (curBlock[i][j] != 0)
+                {
+                    if (0 > i + tetraX || i + tetraX >= this.width || 0 > j + tetraY || j + tetraY >= this.height)
+                    {
+                        return true;
+                    }
+                    if (field [tetraX + i] [tetraY + j] != 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 	/**
 	Paints the tetris blocks on the field.
 	*/
@@ -131,14 +159,17 @@ public class Game extends Panel
 			}
 		}
 
-		for (int i = tetraX; i < tetraX + 4; i++)
+		for (int i = 0; i < 4; i++)
 		{
-			for (int j = tetraY; j < tetraY + 4; j++)
+			for (int j = 0; j < 4; j++)
 			{
-				g.setColor (colours [curBlock [i - tetraX] [j - tetraY]]);
-				g.fillRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-				g.setColor (Color.BLACK);
-				g.drawRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                if (curBlock [i] [j] != 0)
+                {
+                    g.setColor (colours [curBlock [i] [j]]);
+                    g.fillRect ((i + tetraX) * BLOCK_SIZE, (j + tetraY) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                    g.setColor (Color.BLACK);
+                    g.drawRect((i + tetraX) * BLOCK_SIZE, (j + tetraY) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                }
 			}
 		}
 	}
