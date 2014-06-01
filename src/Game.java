@@ -2,6 +2,8 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.LinkedList;
 
 public class Game extends Panel implements KeyListener
 {
@@ -11,35 +13,38 @@ public class Game extends Panel implements KeyListener
 
 	private int [] [] field; //the top of the field is 0.
 	private int [] [] curBlock = new int [1][1];
+    private int [] [] nextBlock;
 
-	private final int width;
-    private final int height;
 
-    private Image offscreen;
-    private Graphics offscreenGraphics;
+    private LinkedList<Integer> blockQueue = new LinkedList<Integer> ();
+
+	private final int fieldWidth;
+    private final int fieldHeight;
+
+    private Image offscreen = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
 
 	private final int [] [] [] tetraminos = new int [][][] {
-		{{0, 1, 0},
-		 {0, 1, 0},
-		 {0, 1, 1}},
-		{{0, 2, 0},
-		 {0, 2, 0},
-		 {2, 2, 0}},
-		{{0, 0, 0, 0},
-		 {0, 0, 0, 0},
-		 {3, 3, 3, 3},
-		 {0, 0, 0, 0}},
-		{{0, 4, 0},
-		 {4, 4, 0},
-		 {4, 0, 0}},
-		{{0, 5, 0},
-		 {0, 5, 5},
-		 {0, 0, 5}},
+		{{1, 0},
+		 {1, 0},
+		 {1, 1}},
+		{{2, 2},
+		 {2, 0},
+		 {2, 0}},
+		{{0, 3, 0},
+         {0, 3, 0},
+         {0, 3, 0},
+         {0, 3, 0}},
+		{{0, 4},
+		 {4, 4},
+		 {4, 0}},
+		{{5, 0},
+		 {5, 5},
+		 {0, 5}},
 		{{6, 6},
          {6, 6}},
-		{{0, 7, 0},
-		 {7, 7, 7},
-         {0, 0, 0}}		};
+		{{7, 0},
+		 {7, 7},
+         {7, 0}}	};
 
 
 	private int tetraX, tetraY;  //coordinates of the top-left corner of the tetramino.
@@ -49,12 +54,9 @@ public class Game extends Panel implements KeyListener
 		printArray (tetraminos [0]);
 		printArray (rotate (tetraminos [0]));
 
-		this.width = width;
-		this.height = height;
+		this.fieldWidth = width;
+		this.fieldHeight = height;
 		this.field = new int [width] [height];
-
-        this.offscreen = new BufferedImage(this.width * BLOCK_SIZE, this.height * BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
-        this.offscreenGraphics = offscreen.getGraphics();
 
 		this.spawnNewBlock();
 	}
@@ -115,9 +117,9 @@ public class Game extends Panel implements KeyListener
     void spawnNewBlock()
 	{
         //check for loss
-        for (int i = 0; i < this.width; i++)
+        for (int i = 0; i < this.fieldWidth; i++)
         {
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j <= 4; j++)
             {
                 if (field [i] [j] != 0)
                 {
@@ -141,10 +143,10 @@ public class Game extends Panel implements KeyListener
 
         //check for line filled.
         boolean filled;
-        for (int j = this.height - 1; j > 0; j--)
+        for (int j = this.fieldHeight - 1; j > 0; j--)
         {
             filled = true;
-            for (int i = 0; i < this.width; i++)
+            for (int i = 0; i < this.fieldWidth; i++)
             {
                 if (field [i][j] == 0)
                 {
@@ -156,7 +158,7 @@ public class Game extends Panel implements KeyListener
             if (filled)
             {
                 //clear line j.
-                for (int i = 0; i < this.width; i++)
+                for (int i = 0; i < this.fieldWidth; i++)
                 {
                     for (int k = j; k > 0; k--)
                     {
@@ -168,9 +170,23 @@ public class Game extends Panel implements KeyListener
         }
 
 		//spawn a new block.
-		curBlock = tetraminos [(int) (Math.random() * 7)].clone();
-		tetraX = width / 2 - 2;
+        if (blockQueue.size() <= 1)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                blockQueue.add (i);
+            }
+            curBlock = tetraminos [blockQueue.remove()].clone();
+            Collections.shuffle(blockQueue);
+        }
+        else
+        {
+		    curBlock = tetraminos [blockQueue.remove()].clone();
+        }
+		tetraX = fieldWidth / 2 - 2;
 		tetraY = 0;
+
+        nextBlock = tetraminos [blockQueue.element()];
 	}
 
     /**
@@ -185,7 +201,7 @@ public class Game extends Panel implements KeyListener
             {
                 if (curBlock[i][j] != 0)
                 {
-                    if (0 > i + tetraX || i + tetraX >= this.width || 0 > j + tetraY || j + tetraY >= this.height)
+                    if (0 > i + tetraX || i + tetraX >= this.fieldWidth || 0 > j + tetraY || j + tetraY >= this.fieldHeight)
                     {
                         return true;
                     }
@@ -205,16 +221,26 @@ public class Game extends Panel implements KeyListener
 	@Override
 	public void paint (Graphics g)
 	{
-        System.out.println("paint");
-		this.paintBuffer(offscreenGraphics);
-        g.drawImage(offscreen,0,0,null);
+
+        if (this.getSize().width != this.offscreen.getWidth(null) || this.getSize().getHeight() != this.offscreen.getHeight(null))
+        {
+            this.offscreen = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
+        }
+        
+        //draw field etc.
+		this.paintBuffer(offscreen.getGraphics());
+        g.drawImage(offscreen,0,0,null);       
 	}
 
     public void paintBuffer (Graphics g)
     {
-        for (int i = 0; i < this.width; i++)
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, this.getWidth(), this.getHeight());
+
+        //paint field
+        for (int i = 0; i < this.fieldWidth; i++)
         {
-            for (int j = 0; j < this.height; j++)
+            for (int j = 0; j < this.fieldHeight; j++)
             {
                 g.setColor (colours [field [i] [j]]);
                 g.fillRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
@@ -223,6 +249,7 @@ public class Game extends Panel implements KeyListener
             }
         }
 
+        //paint current block
         for (int i = 0; i < curBlock.length; i++)
         {
             for (int j = 0; j < curBlock[0].length; j++)
@@ -236,6 +263,28 @@ public class Game extends Panel implements KeyListener
                 }
             }
         }
+
+
+        //draw next block
+        int offsetX = (this.fieldWidth + 1) * BLOCK_SIZE; //coordinates of where to draw the next block.
+        int offsetY = BLOCK_SIZE;
+
+        g.setColor(Color.WHITE);
+        g.drawString("Next block", offsetX, offsetY - 10);
+
+        for (int i = 0; i < nextBlock.length; i++)
+        {
+            for (int j = 0; j < nextBlock[0].length; j++)
+            {
+                if (nextBlock [i] [j] != 0)
+                {
+                    g.setColor(colours [nextBlock [i] [j]]);
+                    g.fillRect(i * BLOCK_SIZE + offsetX, j * BLOCK_SIZE + offsetY, BLOCK_SIZE, BLOCK_SIZE);
+                    g.setColor(Color.BLACK);
+                    g.drawRect(i * BLOCK_SIZE + offsetX, j * BLOCK_SIZE + offsetY, BLOCK_SIZE, BLOCK_SIZE);
+                }
+            }
+        }
     }
 
 	/**
@@ -244,12 +293,12 @@ public class Game extends Panel implements KeyListener
 	private static int [] [] rotate (int [] [] a)
 	{
 		//sort of use the rotation matrix [[0, 1], [-1, 0]]
-		int [] [] result = new int [a.length] [a[0].length];
-		for (int i = 0; i < a.length; i++)
+		int [] [] result = new int [a[0].length] [a.length];
+		for (int i = 0; i < a[0].length; i++)
 		{
-			for (int j = 0; j < a[0].length; j++)
+			for (int j = 0; j < a.length; j++)
 			{
-				result [i] [j] = a[a.length - j - 1] [i];
+				result [i] [j] = a[j] [a[0].length - i - 1];
 			}
 		}
 		return result;

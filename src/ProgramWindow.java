@@ -7,7 +7,7 @@ public class ProgramWindow extends Frame
 	public ProgramWindow ()
 	{
 		this.setVisible (true);
-		this.setSize (400, 800);
+		this.setSize (600, 800);
 		this.add (panel.t.game);
         this.addKeyListener(panel.t.game);
 	}
