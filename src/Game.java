@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
 
 public class Game extends Panel implements KeyListener
 {
@@ -8,12 +9,16 @@ public class Game extends Panel implements KeyListener
 
 	private static final Color [] colours = new Color [] { new Color (0x888888), new Color (0xFFA500), new Color (0x0000FF), new Color (0x00FFFF), new Color (0xFF0000), new Color (0x00FF00), new Color (0xFFFF00), new Color(0x8B008B)};
 
-	public int [] [] field; //the top of the field is 0.
-	public int [] [] curBlock = new int [1][1];
+	private int [] [] field; //the top of the field is 0.
+	private int [] [] curBlock = new int [1][1];
 
-	public int width, height;
+	private final int width;
+    private final int height;
 
-	private int [] [] [] tetraminos = new int [][][] {
+    private Image offscreen;
+    private Graphics offscreenGraphics;
+
+	private final int [] [] [] tetraminos = new int [][][] {
 		{{0, 1, 0},
 		 {0, 1, 0},
 		 {0, 1, 1}},
@@ -37,7 +42,7 @@ public class Game extends Panel implements KeyListener
          {0, 0, 0}}		};
 
 
-	public int tetraX, tetraY;  //coordinates of the top-left corner of the tetramino.
+	private int tetraX, tetraY;  //coordinates of the top-left corner of the tetramino.
 
 	public Game (int width, int height)
 	{
@@ -47,6 +52,9 @@ public class Game extends Panel implements KeyListener
 		this.width = width;
 		this.height = height;
 		this.field = new int [width] [height];
+
+        this.offscreen = new BufferedImage(this.width * BLOCK_SIZE, this.height * BLOCK_SIZE, BufferedImage.TYPE_INT_RGB);
+        this.offscreenGraphics = offscreen.getGraphics();
 
 		this.spawnNewBlock();
 	}
@@ -104,7 +112,7 @@ public class Game extends Panel implements KeyListener
 	Add the current block the the field, and spawn a random block at the top.
      Check for loss: is there a block in the top 4 rows.
 	*/
-	public void spawnNewBlock ()
+    void spawnNewBlock()
 	{
         //check for loss
         for (int i = 0; i < this.width; i++)
@@ -197,21 +205,28 @@ public class Game extends Panel implements KeyListener
 	@Override
 	public void paint (Graphics g)
 	{
-		for (int i = 0; i < this.width; i++)
-		{
-			for (int j = 0; j < this.height; j++)
-			{
-				g.setColor (colours [field [i] [j]]);
-				g.fillRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-				g.setColor (Color.BLACK);
-				g.drawRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-			}
-		}
+        System.out.println("paint");
+		this.paintBuffer(offscreenGraphics);
+        g.drawImage(offscreen,0,0,null);
+	}
 
-		for (int i = 0; i < curBlock.length; i++)
-		{
-			for (int j = 0; j < curBlock[0].length; j++)
-			{
+    public void paintBuffer (Graphics g)
+    {
+        for (int i = 0; i < this.width; i++)
+        {
+            for (int j = 0; j < this.height; j++)
+            {
+                g.setColor (colours [field [i] [j]]);
+                g.fillRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                g.setColor (Color.BLACK);
+                g.drawRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+            }
+        }
+
+        for (int i = 0; i < curBlock.length; i++)
+        {
+            for (int j = 0; j < curBlock[0].length; j++)
+            {
                 if (curBlock [i] [j] != 0)
                 {
                     g.setColor (colours [curBlock [i] [j]]);
@@ -219,9 +234,9 @@ public class Game extends Panel implements KeyListener
                     g.setColor (Color.BLACK);
                     g.drawRect((i + tetraX) * BLOCK_SIZE, (j + tetraY) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 
 	/**
 	Rotates a tetramino 90 degrees clockwise.
@@ -265,15 +280,19 @@ public class Game extends Panel implements KeyListener
         switch (e.getKeyCode())
         {
             case KeyEvent.VK_UP:
+            case KeyEvent.VK_W:
                 rotateCurBlock();
                 break;
             case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_S:
                 softDrop();
                 break;
             case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_A:
                 translateCurBlock(-1);
                 break;
             case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_D:
                 translateCurBlock(1);
                 break;
             case KeyEvent.VK_SPACE:
@@ -286,6 +305,6 @@ public class Game extends Panel implements KeyListener
     @Override
     public void keyReleased(KeyEvent e)
     {
-        //do nothing.
+        //pass
     }
 }

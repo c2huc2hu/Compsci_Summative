@@ -1,5 +1,4 @@
-import java.util.*;
-import java.awt.*;
+import java.util.TimerTask;
 
 public class Tetris extends TimerTask
 {
