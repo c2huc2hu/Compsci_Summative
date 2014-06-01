@@ -1,6 +1,8 @@
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-public class Game extends Panel
+public class Game extends Panel implements KeyListener
 {
 	private final int BLOCK_SIZE = 32;
 
@@ -70,6 +72,32 @@ public class Game extends Panel
         }
         return false;
 	}
+
+    /**
+     * What happens when the user presses the up key to rotate the block.
+     */
+    private void rotateCurBlock ()
+    {
+        int [] [] copy = curBlock.clone();
+        curBlock = rotate(curBlock);
+        if (collision())
+        {
+            curBlock = copy;
+        }
+    }
+
+    /**
+     * Shifts curBlock over one.
+     * @param direction +1 -> right, -1 -> left.
+     */
+    private void translateCurBlock (int direction)
+    {
+        tetraX += direction;
+        if (collision())
+        {
+            tetraX -= direction;
+        }
+    }
 
 	public void update ()
 	{
@@ -179,7 +207,7 @@ public class Game extends Panel
 	*/
 	private static int [] [] rotate (int [] [] a)
 	{
-		//use the rotation matrix [[0, 1], [-1, 0]]
+		//sort of use the rotation matrix [[0, 1], [-1, 0]]
 		int [] [] result = new int [a.length] [a[0].length];
 		for (int i = 0; i < a.length; i++)
 		{
@@ -203,4 +231,40 @@ public class Game extends Panel
 			System.out.println();
 		}
 	}
+
+    @Override
+    public void keyTyped(KeyEvent e)
+    {
+        //pass.
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e)
+    {
+        switch (e.getKeyCode())
+        {
+            case KeyEvent.VK_UP:
+                rotateCurBlock();
+                break;
+            case KeyEvent.VK_DOWN:
+                softDrop();
+                break;
+            case KeyEvent.VK_LEFT:
+                translateCurBlock(-1);
+                break;
+            case KeyEvent.VK_RIGHT:
+                translateCurBlock(1);
+                break;
+            case KeyEvent.VK_SPACE:
+                while (!softDrop());
+                break;
+        }
+        this.repaint();
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e)
+    {
+        //do nothing.
+    }
 }

@@ -9,5 +9,6 @@ public class ProgramWindow extends Frame
 		this.setVisible (true);
 		this.setSize (400, 800);
 		this.add (panel.t.game);
+        this.addKeyListener(panel.t.game);
 	}
 }

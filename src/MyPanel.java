@@ -10,6 +10,5 @@ public class MyPanel extends Panel
 		t = new Tetris();
 		Timer timer = new Timer();
 		timer.scheduleAtFixedRate(t, 0, 300);
-		this.add (t.game);
 	}
 }
