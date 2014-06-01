@@ -4,44 +4,37 @@ import java.awt.event.KeyListener;
 
 public class Game extends Panel implements KeyListener
 {
-	private final int BLOCK_SIZE = 32;
+	private static final int BLOCK_SIZE = 32;
 
-	private final Color [] colours = new Color [] { new Color (0x888888), new Color (0xFFFF00), new Color (0x00FFFF)};
+	private static final Color [] colours = new Color [] { new Color (0x888888), new Color (0xFFA500), new Color (0x0000FF), new Color (0x00FFFF), new Color (0xFF0000), new Color (0x00FF00), new Color (0xFFFF00), new Color(0x8B008B)};
 
 	public int [] [] field; //the top of the field is 0.
-	public int [] [] curBlock = new int [4] [4];
+	public int [] [] curBlock = new int [1][1];
 
 	public int width, height;
 
 	private int [] [] [] tetraminos = new int [][][] {
-		{{0, 0, 0, 0},
-		 {0, 1, 0, 0},
-		 {0, 1, 0, 0},
-		 {0, 1, 1, 0}},
-		{{0, 0, 0, 0},
-		 {0, 0, 1, 0},
-		 {0, 0, 1, 0},
-		 {0, 1, 1, 0}},
+		{{0, 1, 0},
+		 {0, 1, 0},
+		 {0, 1, 1}},
+		{{0, 2, 0},
+		 {0, 2, 0},
+		 {2, 2, 0}},
 		{{0, 0, 0, 0},
 		 {0, 0, 0, 0},
-		 {1, 1, 1, 1},
+		 {3, 3, 3, 3},
 		 {0, 0, 0, 0}},
-		{{0, 0, 0, 0},
-		 {0, 0, 1, 0},
-		 {0, 1, 1, 0},
-		 {0, 1, 0, 0}},
-		{{0, 0, 0, 0},
-		 {0, 1, 0, 0},
-		 {0, 1, 1, 0},
-		 {0, 0, 1, 0}},
-		{{0, 0, 0, 0},
-		 {0, 1, 1, 0},
-		 {0, 1, 1, 0},
-		 {0, 0, 0, 0}},
-		{{0, 0, 0, 0},
-		 {0, 0, 0, 0},
-		 {0, 0, 1, 0},
-		 {0, 1, 1, 1}}		};
+		{{0, 4, 0},
+		 {4, 4, 0},
+		 {4, 0, 0}},
+		{{0, 5, 0},
+		 {0, 5, 5},
+		 {0, 0, 5}},
+		{{6, 6},
+         {6, 6}},
+		{{0, 7, 0},
+		 {7, 7, 7},
+         {0, 0, 0}}		};
 
 
 	public int tetraX, tetraY;  //coordinates of the top-left corner of the tetramino.
@@ -138,6 +131,34 @@ public class Game extends Panel implements KeyListener
 			}
 		}
 
+        //check for line filled.
+        boolean filled;
+        for (int j = this.height - 1; j > 0; j--)
+        {
+            filled = true;
+            for (int i = 0; i < this.width; i++)
+            {
+                if (field [i][j] == 0)
+                {
+                    filled = false;
+                    break;
+                }
+            }
+
+            if (filled)
+            {
+                //clear line j.
+                for (int i = 0; i < this.width; i++)
+                {
+                    for (int k = j; k > 0; k--)
+                    {
+                        field [i][k] = field [i][k - 1];
+                    }
+                }
+                j++;
+            }
+        }
+
 		//spawn a new block.
 		curBlock = tetraminos [(int) (Math.random() * 7)].clone();
 		tetraX = width / 2 - 2;
@@ -150,9 +171,9 @@ public class Game extends Panel implements KeyListener
      */
     private boolean collision ()
     {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < curBlock.length; i++)
         {
-            for (int j = 0; j < 4; j++)
+            for (int j = 0; j < curBlock[0].length; j++)
             {
                 if (curBlock[i][j] != 0)
                 {
@@ -187,9 +208,9 @@ public class Game extends Panel implements KeyListener
 			}
 		}
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < curBlock.length; i++)
 		{
-			for (int j = 0; j < 4; j++)
+			for (int j = 0; j < curBlock[0].length; j++)
 			{
                 if (curBlock [i] [j] != 0)
                 {
