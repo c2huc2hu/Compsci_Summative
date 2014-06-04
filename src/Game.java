@@ -6,7 +6,6 @@ import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.LinkedList;
 
-
 public class Game extends JPanel implements KeyListener
 {
 	private static final int BLOCK_SIZE = 25;
@@ -18,6 +17,8 @@ public class Game extends JPanel implements KeyListener
     private int [] [] nextBlock;
     private int [] [] heldBlock = new int [1][1];
     private boolean hasHeld = false; //whether the player has already used hold on this block.
+
+    private int score = 0;
 
     private LinkedList<Integer> blockQueue = new LinkedList<Integer> ();
 
@@ -146,7 +147,7 @@ public class Game extends JPanel implements KeyListener
         //check for loss
         if (collision())
         {
-            System.out.println("You have lost");
+            System.out.println("You have lost. Your score is " + score);
             System.exit (100);
         }
 
@@ -179,6 +180,7 @@ public class Game extends JPanel implements KeyListener
             if (filled)
             {
                 //clear line j.
+                score++;
                 for (int i = 0; i < this.fieldWidth; i++)
                 {
                     for (int k = j; k > 0; k--)
@@ -292,7 +294,7 @@ public class Game extends JPanel implements KeyListener
             }
         }
 
-        //draw next block
+        //draw next block and held block.
         int offsetX = (this.fieldWidth + 1) * BLOCK_SIZE; //coordinates of where to draw the next block.
         int offsetY = BLOCK_SIZE;
 
@@ -304,6 +306,10 @@ public class Game extends JPanel implements KeyListener
         g.setColor(Color.WHITE);
         g.drawString("Held block", offsetX, offsetY - 10);
         drawBlock(g, heldBlock, offsetX, offsetY);
+
+        //draw score
+        g.setColor(Color.WHITE);
+        g.drawString("Score: " + score, offsetX, offsetY + BLOCK_SIZE * 5);
     }
 
     /**
