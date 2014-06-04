@@ -1,4 +1,4 @@
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.util.Timer;
 
 public class MyPanel extends JPanel

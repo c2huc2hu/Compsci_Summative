@@ -1,9 +1,10 @@
-import javax.swing.JPanel;
+import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
+import java.util.LinkedList;
 
 
 public class Game extends JPanel implements KeyListener
@@ -15,7 +16,8 @@ public class Game extends JPanel implements KeyListener
 	private int [] [] field; //the top of the field is 0.
 	private int [] [] curBlock = new int [1][1];
     private int [] [] nextBlock;
-
+    private int [] [] heldBlock = new int [1][1];
+    private boolean hasHeld = false; //whether the player has already used hold on this block.
 
     private LinkedList<Integer> blockQueue = new LinkedList<Integer> ();
 
@@ -111,6 +113,30 @@ public class Game extends JPanel implements KeyListener
 		}
 	}
 
+    public void holdBlock ()
+    {
+        if (hasHeld)
+        {
+            return;
+        }
+        if (this.heldBlock.length == 1 && this.heldBlock[0].length == 1) //if it has its initial value
+        {
+            this.heldBlock = this.curBlock;
+            this.curBlock = new int[1][1];
+            this.spawnNewBlock();
+        }
+        else
+        {
+            int [] [] temp = this.curBlock;
+            this.curBlock = this.heldBlock;
+            this.heldBlock = temp;
+        }
+        this.tetraX = this.fieldWidth / 2;
+        this.tetraY = 0;
+        this.hasHeld = true;
+    }
+
+
 	/**
 	Add the current block the the field, and spawn a random block at the top.
      Check for loss: is there a block in the top 4 rows.
@@ -182,7 +208,9 @@ public class Game extends JPanel implements KeyListener
 		tetraY = 0;
 
         nextBlock = tetraminos [blockQueue.element()];
-	}
+
+        this.hasHeld = false;
+    }
 
     /**
      * Check whether current block is in a valid position, i.e. not off the screen or 'inside' another block.
@@ -229,20 +257,25 @@ public class Game extends JPanel implements KeyListener
 
     public void paintBuffer (Graphics g)
     {
+        //draw grid
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-        //paint field
+        g.setColor(Color.GRAY);
+        g.fillRect(0, 0, this.fieldWidth * BLOCK_SIZE, this.fieldHeight * BLOCK_SIZE);
+
+        g.setColor(Color.BLACK);
         for (int i = 0; i < this.fieldWidth; i++)
         {
             for (int j = 0; j < this.fieldHeight; j++)
             {
-                g.setColor (colours [field [i] [j]]);
-                g.fillRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-                g.setColor (Color.BLACK);
-                g.drawRect (i * BLOCK_SIZE, j * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                g.drawLine (i * BLOCK_SIZE, 0, i * BLOCK_SIZE, this.fieldHeight * BLOCK_SIZE);
+                g.drawLine (0, j * BLOCK_SIZE, this.fieldWidth * BLOCK_SIZE, j * BLOCK_SIZE);
             }
         }
+
+        //paint field
+        drawBlock(g, field, 0, 0);
 
         //paint current block
         for (int i = 0; i < curBlock.length; i++)
@@ -259,21 +292,36 @@ public class Game extends JPanel implements KeyListener
             }
         }
 
-
         //draw next block
         int offsetX = (this.fieldWidth + 1) * BLOCK_SIZE; //coordinates of where to draw the next block.
         int offsetY = BLOCK_SIZE;
 
         g.setColor(Color.WHITE);
         g.drawString("Next block", offsetX, offsetY - 10);
+        drawBlock(g, nextBlock, offsetX, offsetY);
 
-        for (int i = 0; i < nextBlock.length; i++)
+        offsetY += BLOCK_SIZE * 5;
+        g.setColor(Color.WHITE);
+        g.drawString("Held block", offsetX, offsetY - 10);
+        drawBlock(g, heldBlock, offsetX, offsetY);
+    }
+
+    /**
+     * For drawing a group of blocks. The top left corner is at offsetX, offsetY.
+     * @param g
+     * @param block Either the block or the field.
+     * @param offsetX
+     * @param offsetY
+     */
+    private void drawBlock (Graphics g, int [] [] block, int offsetX, int offsetY)
+    {
+        for (int i = 0; i < block.length; i++)
         {
-            for (int j = 0; j < nextBlock[0].length; j++)
+            for (int j = 0; j < block[i].length; j++)
             {
-                if (nextBlock [i] [j] != 0)
+                if (block [i] [j] != 0)
                 {
-                    g.setColor(colours [nextBlock [i] [j]]);
+                    g.setColor(colours [block [i] [j]]);
                     g.fillRect(i * BLOCK_SIZE + offsetX, j * BLOCK_SIZE + offsetY, BLOCK_SIZE, BLOCK_SIZE);
                     g.setColor(Color.BLACK);
                     g.drawRect(i * BLOCK_SIZE + offsetX, j * BLOCK_SIZE + offsetY, BLOCK_SIZE, BLOCK_SIZE);
@@ -281,6 +329,7 @@ public class Game extends JPanel implements KeyListener
             }
         }
     }
+
 
 	/**
 	Rotates a tetramino 90 degrees clockwise.
@@ -341,6 +390,9 @@ public class Game extends JPanel implements KeyListener
                 break;
             case KeyEvent.VK_SPACE:
                 while (!softDrop());
+                break;
+            case KeyEvent.VK_SHIFT:
+                holdBlock();
                 break;
         }
         this.repaint();
