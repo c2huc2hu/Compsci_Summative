@@ -1,7 +1,7 @@
-import java.awt.Panel;
+import javax.swing.JPanel;
 import java.util.Timer;
 
-public class MyPanel extends Panel
+public class MyPanel extends JPanel
 {
 	Tetris t;
 
@@ -9,6 +9,6 @@ public class MyPanel extends Panel
 	{
 		t = new Tetris();
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(t, 0, 500);
+		timer.schedule(t, 0, 500);
 	}
 }

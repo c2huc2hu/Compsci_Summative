@@ -1,13 +1,14 @@
+import javax.swing.JPanel;
 import java.awt.*;
+import java.util.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.util.Collections;
-import java.util.LinkedList;
 
-public class Game extends Panel implements KeyListener
+
+public class Game extends JPanel implements KeyListener
 {
-	private static final int BLOCK_SIZE = 32;
+	private static final int BLOCK_SIZE = 25;
 
 	private static final Color [] colours = new Color [] { new Color (0x888888), new Color (0xFFA500), new Color (0x0000FF), new Color (0x00FFFF), new Color (0xFF0000), new Color (0x00FF00), new Color (0xFFFF00), new Color(0x8B008B)};
 
@@ -117,16 +118,10 @@ public class Game extends Panel implements KeyListener
     void spawnNewBlock()
 	{
         //check for loss
-        for (int i = 0; i < this.fieldWidth; i++)
+        if (collision())
         {
-            for (int j = 0; j <= 4; j++)
-            {
-                if (field [i] [j] != 0)
-                {
-                    System.out.println("You have lost");
-                    System.exit (100);
-                }
-            }
+            System.out.println("You have lost");
+            System.exit (100);
         }
 
 		//copy current block to field.

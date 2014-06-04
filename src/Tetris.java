@@ -7,7 +7,7 @@ public class Tetris extends TimerTask
 	public Tetris ()
 	{
 		System.out.println ("Timer started");
-		game = new Game (10, 14);
+		game = new Game (10, 20);
 	}
 
 	@Override

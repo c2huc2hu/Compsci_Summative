@@ -1,6 +1,6 @@
-import java.awt.Frame;
+import javax.swing.JFrame;
 
-public class ProgramWindow extends Frame
+public class ProgramWindow extends JFrame
 {
 	private MyPanel panel = new MyPanel();
 
