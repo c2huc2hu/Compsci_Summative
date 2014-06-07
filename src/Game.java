@@ -16,6 +16,8 @@ public class Game extends JPanel implements KeyListener
 	private int [] [] curBlock = new int [1][1];
     private int [] [] nextBlock;
     private int [] [] heldBlock = new int [1][1];
+    private int [] [] shadowBlock = new int [0] [0];
+
     private boolean hasHeld = false; //whether the player has already used hold on this block.
 
     private int score = 0;
@@ -50,8 +52,7 @@ public class Game extends JPanel implements KeyListener
 		 {7, 7},
          {7, 0}}	};
 
-
-	private int tetraX, tetraY;  //coordinates of the top-left corner of the tetramino.
+	private int tetraX, tetraY = 0;  //coordinates of the top-left corner of the tetramino.
 
 	public Game (int width, int height)
 	{
@@ -72,7 +73,7 @@ public class Game extends JPanel implements KeyListener
 	private boolean softDrop ()
 	{
 		tetraY += 1;
-		if (collision())
+		if (collision(curBlock, tetraX, tetraY))
         {
             tetraY -= 1;
             return true;
@@ -87,7 +88,7 @@ public class Game extends JPanel implements KeyListener
     {
         int [] [] copy = curBlock.clone();
         curBlock = rotate(curBlock);
-        if (collision())
+        if (collision(curBlock, tetraX, tetraY))
         {
             curBlock = copy;
         }
@@ -100,7 +101,7 @@ public class Game extends JPanel implements KeyListener
     private void translateCurBlock (int direction)
     {
         tetraX += direction;
-        if (collision())
+        if (collision(curBlock, tetraX, tetraY))
         {
             tetraX -= direction;
         }
@@ -145,7 +146,7 @@ public class Game extends JPanel implements KeyListener
     void spawnNewBlock()
 	{
         //check for loss
-        if (collision())
+        if (collision(curBlock, tetraX, tetraY))
         {
             System.out.println("You have lost. Your score is " + score);
             System.exit (100);
@@ -215,22 +216,22 @@ public class Game extends JPanel implements KeyListener
     }
 
     /**
-     * Check whether current block is in a valid position, i.e. not off the screen or 'inside' another block.
+     * Check whether block is in a valid position, i.e. not off the screen or 'inside' another block.
      * @return whether there is a collision. (return !(block is in valid position)
      */
-    private boolean collision ()
+    private boolean collision (int [] [] block, int blockX, int blockY)
     {
-        for (int i = 0; i < curBlock.length; i++)
+        for (int i = 0; i < block.length; i++)
         {
-            for (int j = 0; j < curBlock[0].length; j++)
+            for (int j = 0; j < block[0].length; j++)
             {
-                if (curBlock[i][j] != 0)
+                if (block[i][j] != 0)
                 {
-                    if (0 > i + tetraX || i + tetraX >= this.fieldWidth || 0 > j + tetraY || j + tetraY >= this.fieldHeight)
+                    if (0 > i + blockX || i + blockX >= this.fieldWidth || 0 > j + blockY || j + blockY >= this.fieldHeight)
                     {
                         return true;
                     }
-                    if (field [tetraX + i] [tetraY + j] != 0)
+                    if (field [blockX + i] [blockY + j] != 0)
                     {
                         return true;
                     }
@@ -246,7 +247,6 @@ public class Game extends JPanel implements KeyListener
 	@Override
 	public void paint (Graphics g)
 	{
-
         if (this.getSize().width != this.offscreen.getWidth(null) || this.getSize().getHeight() != this.offscreen.getHeight(null))
         {
             this.offscreen = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -309,7 +309,7 @@ public class Game extends JPanel implements KeyListener
 
         //draw score
         g.setColor(Color.WHITE);
-        g.drawString("Score: " + score, offsetX, offsetY + BLOCK_SIZE * 5);
+        g.drawString("Lines: " + score, offsetX, offsetY + BLOCK_SIZE * 5);
     }
 
     /**
