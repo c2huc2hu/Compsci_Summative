@@ -16,9 +16,10 @@ public class Game extends JPanel implements KeyListener
 	private int [] [] curBlock = new int [1][1];
     private int [] [] nextBlock;
     private int [] [] heldBlock = new int [1][1];
-    private int [] [] shadowBlock = new int [0] [0];
+    //private int [] [] shadowBlock = new int [0] [0];
 
     private boolean hasHeld = false; //whether the player has already used hold on this block.
+    boolean speedUpFlag = false;
 
     private int score = 0;
 
@@ -149,7 +150,6 @@ public class Game extends JPanel implements KeyListener
         if (collision(curBlock, tetraX, tetraY))
         {
             System.out.println("You have lost. Your score is " + score);
-            System.exit (100);
         }
 
 		//copy current block to field.
@@ -182,6 +182,12 @@ public class Game extends JPanel implements KeyListener
             {
                 //clear line j.
                 score++;
+
+                if (score % 4 == 0)
+                {
+                    speedUpFlag = true;
+                }
+
                 for (int i = 0; i < this.fieldWidth; i++)
                 {
                     for (int k = j; k > 0; k--)

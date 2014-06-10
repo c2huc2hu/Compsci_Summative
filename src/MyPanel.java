@@ -9,6 +9,6 @@ public class MyPanel extends JPanel
 	{
 		t = new Tetris();
 		Timer timer = new Timer();
-		timer.schedule(t, 0, 500);
+		timer.scheduleAtFixedRate(t, 0, 10);
 	}
 }
